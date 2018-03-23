@@ -1,8 +1,8 @@
 import telebot
 from TOKEN import TOKEN
-from users import Users
-from games import Games
+from models.users import Users
+from models.games import Games_list
 
 users = Users()
-games = Games()
+games = Games_list()
 bot = telebot.TeleBot(TOKEN, skip_pending=True)

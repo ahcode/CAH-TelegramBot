@@ -1,4 +1,4 @@
 from CCH import bot
-import functions
+import commands
 
 bot.polling()
