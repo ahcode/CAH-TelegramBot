@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import telebot
-from CCH import bot, users, games
+from CAH import bot, users, games
 
 @bot.message_handler(func=lambda message: message.chat.type == 'private', commands=['start'])
 def start(m):
