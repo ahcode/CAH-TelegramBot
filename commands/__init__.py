@@ -23,6 +23,8 @@ def new_game(m):
 
 @bot.message_handler(func=lambda message: message.chat.type == 'group' or message.chat.type == 'supergroup' , commands=['join'])
 def join(m):
+    users.register_user(m.from_user.id)
+    u = users.get_user(m.from_user.id)
     g = games.get_game(m.chat.id)
     if g == None:
         bot.reply_to(m, "Pero si no estamos jugando...\nUtiliza /new_game para empezar una partida")
@@ -30,11 +32,14 @@ def join(m):
         bot.reply_to(m, "Desgraciado, que ya te has unido, no me lies")
     elif g.started:
         bot.reply_to(m, "La partida ya ha empezado, espabila para la próxima")
+    elif u.groupid != None:
+        bot.reply_to(m, "Ya estás jugando en otro grupo, no me seas avaricioso")
     else:
         try:
             bot.send_message(m.from_user.id, 'Te has unido a la partida en el grupo "{}"'.format(m.chat.title))
             g.join_user(m.from_user.id, m.from_user.first_name.encode("utf-8"))
             bot.send_message(m.chat.id, "{} se ha unido a la partida".format(m.from_user.first_name.encode("utf-8")))
+            u.groupid = m.chat.id
         except telebot.apihelper.ApiException as e:
             if e.result.status_code == 403:
                 bot.reply_to(m, "¿Ni te presentas? Mándame por privado /start para que te conozca un poco")
@@ -47,15 +52,21 @@ def force_start(m):
     elif g.started:
         bot.reply_to(m, "Que vas a forzar si ya ha empezado listillo")
     else:
-        g.start()
-        bot.send_message(m.chat.id, "Por fin! La partida acaba de empezar!")
-        new_round(g)
+        if g.start():
+            bot.send_message(m.chat.id, "Por fin! La partida acaba de empezar!")
+            new_round(g)
+        else:
+            bot.send_message(m.chat.id, "No hay suficientes jugadores, se cancela la partida :'(")
+            for uid in g.get_users_list():
+                user = users.get_user(uid)
+                user.groupid = None
+            games.del_game(m.chat.id)
 
 @bot.callback_query_handler(func=lambda call: hasattr(call, 'data') and call.message.chat.type == 'private')
 def pick_card(call):
     print ("Hola")
     u = users.get_user(call.from_user.id)
-    if u != None:
+    if u != None and u.groupid != None:
         g = games.get_game(u.groupid)
         if g != None:
             if call.data == 'deal':
@@ -67,8 +78,9 @@ def pick_card(call):
             else:
                 try:
                     c = int(call.data)
-                    card = g.pick_card(c)
-                    if card:
-                        bot.send_message(call.from_user.id, "Has elegido \"{}\"".format(w_cards[card]))
+                    if g.pick_card(call.from_user.id, c):
+                        keyboard = telebot.types.InlineKeyboardMarkup()
+                        bot.edit_message_text(call.message.text, call.message.chat.id, call.message.message_id, reply_markup = keyboard)
+                        bot.send_message(call.from_user.id, "Has elegido \"{}\"".format(w_cards[c]))
                 except ValueError:
                     pass

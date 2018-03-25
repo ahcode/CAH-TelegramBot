@@ -4,7 +4,7 @@ from config import json_users_file
 class User:
     def __init__(self, uid, points):
         self.id = uid
-        self.groupid = 0
+        self.groupid = None
         self.points = points
     
     def set_game(self, groupid):

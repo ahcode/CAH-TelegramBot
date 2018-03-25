@@ -2,23 +2,23 @@ from random import shuffle
 from config import max_deals, cards_per_person
 
 class Game:
-    users = {}
-
     def __init__(self, group_id, w_cards, b_cards):
         self.w_cards = range(0, w_cards)
         self.b_cards = range(0, b_cards)
         shuffle(self.w_cards)
         shuffle(self.b_cards)
         self.group_id = group_id
+        self.users = {}
         self.new_black_card()
         self.started = False
     
     def new_black_card(self):
         self.black_card = self.b_cards.pop()
+        self.picked_cards = {}
         return self.black_card
 
     def get_users_list(self):
-        return self.users
+        return self.users.keys()
     
     def exist_user(self, user_id):
         return str(user_id) in self.users
@@ -42,6 +42,16 @@ class Game:
                 return False
         else:
             return None
+
+    def pick_card(self, user_id, card):
+        if card in self.users[str(user_id)]['cards'] and str(user_id) not in self.picked_cards:
+            index = self.users[str(user_id)]['cards'].index(card)
+            self.users[str(user_id)]['cards'].pop(index)
+            self.users[str(user_id)]['cards'].append(self.w_cards.pop())
+            self.picked_cards[str(user_id)] = card
+            return True
+        else:
+            return False
 
     def start(self):
         if len(self.users) <= 3:
@@ -70,3 +80,7 @@ class Games_list:
             return self.games_list[str(group_id)]
         else:
             return None
+
+    def del_game(self, group_id):
+        if str(group_id) in self.games_list:
+            del self.games_list[str(group_id)]
