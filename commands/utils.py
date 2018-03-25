@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from CAH import bot, w_cards, b_cards
+from CAH import bot, w_cards, b_cards, users, games
 from telebot import types
 
 def new_round(game):
@@ -13,3 +13,14 @@ def broadcast_cards(game):
         for c in cards:
             keyboard.add(types.InlineKeyboardButton(w_cards[c], callback_data=str(c)))
         bot.send_message(uid, "La frase es:\n\n{}.\nElige una carta graciosa!".format(b_cards[game.black_card].format('_____')), reply_markup=keyboard)
+
+def start_game(game):
+    if game.start():
+        bot.send_message(game.group_id, "Por fin! La partida acaba de empezar!")
+        new_round(game)
+    else:
+        bot.send_message(game.group_id, "No hay suficientes jugadores, se cancela la partida :'(")
+        for uid in game.get_users_list():
+            user = users.get_user(uid)
+            user.groupid = None
+        games.del_game(game.group_id)

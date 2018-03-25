@@ -2,7 +2,7 @@
 
 import telebot
 from CAH import *
-from utils import new_round
+from utils import *
 
 @bot.message_handler(func=lambda message: message.chat.type == 'private', commands=['start'])
 def start(m):
@@ -52,15 +52,7 @@ def force_start(m):
     elif g.started:
         bot.reply_to(m, "Que vas a forzar si ya ha empezado listillo")
     else:
-        if g.start():
-            bot.send_message(m.chat.id, "Por fin! La partida acaba de empezar!")
-            new_round(g)
-        else:
-            bot.send_message(m.chat.id, "No hay suficientes jugadores, se cancela la partida :'(")
-            for uid in g.get_users_list():
-                user = users.get_user(uid)
-                user.groupid = None
-            games.del_game(m.chat.id)
+        start_game(g)
 
 @bot.callback_query_handler(func=lambda call: hasattr(call, 'data') and call.message.chat.type == 'private')
 def pick_card(call):
