@@ -24,3 +24,11 @@ def start_game(game):
             user = users.get_user(uid)
             user.groupid = None
         games.del_game(game.group_id)
+
+def start_voting(game):
+    msgtext = "Hora de votar!\n\nEstas son las frases que habeis formado:"
+    b = game.black_card
+    picked_list = game.picked_cards
+    for i in range(0, len(picked_list)):
+        msgtext += "\n\n{}. {}".format(i+1, b_cards[b].format(w_cards[picked_list[i][1]]))
+    bot.send_message(game.group_id, msgtext)

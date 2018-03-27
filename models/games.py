@@ -14,7 +14,7 @@ class Game:
     
     def new_black_card(self):
         self.black_card = self.b_cards.pop()
-        self.picked_cards = {}
+        self.picked_cards = []
         return self.black_card
 
     def get_users_list(self):
@@ -44,17 +44,20 @@ class Game:
             return None
 
     def pick_card(self, user_id, card):
-        if card in self.users[str(user_id)]['cards'] and str(user_id) not in self.picked_cards:
+        if card in self.users[str(user_id)]['cards'] and not any(c[0] == user_id for c in self.picked_cards):
             index = self.users[str(user_id)]['cards'].index(card)
             self.users[str(user_id)]['cards'].pop(index)
             self.users[str(user_id)]['cards'].append(self.w_cards.pop())
-            self.picked_cards[str(user_id)] = card
+            self.picked_cards.append((user_id, card))
             return True
         else:
             return False
 
+    def all_picked(self):
+        return len(self.users) == len(self.picked_cards)
+
     def start(self):
-        if len(self.users) <= 3:
+        if len(self.users) < 3:
             return False
         else:
             self.started = True

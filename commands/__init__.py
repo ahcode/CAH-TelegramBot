@@ -56,7 +56,6 @@ def force_start(m):
 
 @bot.callback_query_handler(func=lambda call: hasattr(call, 'data') and call.message.chat.type == 'private')
 def pick_card(call):
-    print ("Hola")
     u = users.get_user(call.from_user.id)
     if u != None and u.groupid != None:
         g = games.get_game(u.groupid)
@@ -74,5 +73,7 @@ def pick_card(call):
                         keyboard = telebot.types.InlineKeyboardMarkup()
                         bot.edit_message_text(call.message.text, call.message.chat.id, call.message.message_id, reply_markup = keyboard)
                         bot.send_message(call.from_user.id, "Has elegido \"{}\"".format(w_cards[c]))
+                        if g.all_picked():
+                            start_voting(g)
                 except ValueError:
                     pass
