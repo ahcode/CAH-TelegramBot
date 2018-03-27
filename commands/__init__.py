@@ -57,23 +57,36 @@ def force_start(m):
 @bot.callback_query_handler(func=lambda call: hasattr(call, 'data') and call.message.chat.type == 'private')
 def pick_card(call):
     u = users.get_user(call.from_user.id)
-    if u != None and u.groupid != None:
-        g = games.get_game(u.groupid)
-        if g != None:
-            if call.data == 'deal':
-                new_cards = g.deal(u.id)
-                if new_cards == False:
-                    bot.send_message(call.from_user.id, "No te pases, ya has barajado bastante")
-                #else:
-                    #imprimir cartas
-            else:
-                try:
-                    c = int(call.data)
-                    if g.pick_card(call.from_user.id, c):
-                        keyboard = telebot.types.InlineKeyboardMarkup()
-                        bot.edit_message_text(call.message.text, call.message.chat.id, call.message.message_id, reply_markup = keyboard)
-                        bot.send_message(call.from_user.id, "Has elegido \"{}\"".format(w_cards[c]))
-                        if g.all_picked():
-                            start_voting(g)
-                except ValueError:
-                    pass
+    if u == None or u.groupid == None: return
+    g = games.get_game(u.groupid)
+    if g == None: return
+    if not g.voting:
+        # if call.data == 'deal':
+        #     new_cards = g.deal(u.id)
+        #     if new_cards == False:
+        #         bot.send_message(call.from_user.id, "No te pases, ya has barajado bastante")
+        #     else:
+        #         #imprimir cartas
+        # else:
+        try:
+            c = int(call.data)
+            if g.pick_card(call.from_user.id, c):
+                keyboard = telebot.types.InlineKeyboardMarkup()
+                bot.edit_message_text(call.message.text, call.message.chat.id, call.message.message_id, reply_markup = keyboard)
+                bot.send_message(call.from_user.id, "Has elegido \"{}\"".format(w_cards[c]))
+                if g.all_picked():
+                    start_voting(g)
+        except ValueError:
+            pass
+    else:
+        try:
+            n = int(call.data)
+            if g.vote(call.from_user.id, n):
+                keyboard = telebot.types.InlineKeyboardMarkup()
+                bot.edit_message_text(call.message.text, call.message.chat.id, call.message.message_id, reply_markup = keyboard)
+                bot.send_message(call.from_user.id, "Has votado \"{}\"".format(w_cards[g.picked_cards[n][1]]))
+                if g.all_voted():
+                    show_result(g)
+                    new_round(g)
+        except ValueError:
+            pass

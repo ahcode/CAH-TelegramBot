@@ -1,5 +1,5 @@
 from random import shuffle
-from config import max_deals, cards_per_person
+from config import max_deals, cards_per_person, win_round_points, tie_round_points
 
 class Game:
     def __init__(self, group_id, w_cards, b_cards):
@@ -9,12 +9,14 @@ class Game:
         shuffle(self.b_cards)
         self.group_id = group_id
         self.users = {}
-        self.new_black_card()
         self.started = False
     
-    def new_black_card(self):
+    def new_round(self):
         self.black_card = self.b_cards.pop()
         self.picked_cards = []
+        self.voting = False
+        for u in self.users.values():
+            u['voted'] = False
         return self.black_card
 
     def get_users_list(self):
@@ -27,7 +29,7 @@ class Game:
         if str(user_id) in self.users:
             return False
         else:
-            self.users[str(user_id)] = { 'name':user_name, 'deals':max_deals+1 }
+            self.users[str(user_id)] = { 'name':user_name, 'deals':max_deals+1, 'points':0, 'voted':False }
             self.deal(user_id)
             return True
     
@@ -48,13 +50,41 @@ class Game:
             index = self.users[str(user_id)]['cards'].index(card)
             self.users[str(user_id)]['cards'].pop(index)
             self.users[str(user_id)]['cards'].append(self.w_cards.pop())
-            self.picked_cards.append((user_id, card))
+            self.picked_cards.append([user_id, card, 0])
             return True
         else:
             return False
 
     def all_picked(self):
         return len(self.users) == len(self.picked_cards)
+    
+    def vote(self, user_id, num):
+        if not self.users[str(user_id)]['voted'] and num < len(self.picked_cards):
+            self.picked_cards[num][2] += 1
+            self.users[str(user_id)]['voted'] = True
+            return True
+        else:
+            return False
+    
+    def all_voted(self):
+        return not any(u['voted'] == False for u in self.users.values())
+
+    def set_points(self):
+        self.picked_cards.sort(key=lambda x: x[2], reverse = True)
+        winners = self.picked_cards
+        max_points = winners[0][2]
+        for i in range(1, len(winners)):
+            if winners[i][2] != max_points:
+                winners = winners[:i]
+                break
+        
+        if len(winners) == 1:
+            self.users[str(winners[0][0])]['points'] += win_round_points
+        else:
+            for w in winners:
+                self.users[str(w[0])]['points'] += tie_round_points
+        
+        return winners
 
     def start(self):
         if len(self.users) < 3:
