@@ -33,7 +33,7 @@ python polling.py
 - [X] Votación.
 - [X] Almacenar puntos.
 - [X] Comenzar nuevas rondas.
-- [ ] Finalizar partida.
+- [X] Finalizar partida.
 - [ ] Temporizadores.
 - [ ] Configuración independiente por grupo.
 - [ ] Ranking de grupo.
