@@ -35,6 +35,8 @@ python polling.py
 - [X] Comenzar nuevas rondas.
 - [X] Finalizar partida.
 - [ ] Temporizadores.
+- [ ] Opción de barajar tus cartas.
+- [ ] Soporte para cartas pick2.
 - [ ] Configuración independiente por grupo.
 - [ ] Ranking de grupo.
 - [ ] Ranking global.
