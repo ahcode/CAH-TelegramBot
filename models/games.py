@@ -1,5 +1,5 @@
 from random import shuffle
-from config import max_deals, cards_per_person, win_round_points, tie_round_points
+from config import max_deals, cards_per_person, win_round_points, tie_round_points, rounds
 
 class Game:
     def __init__(self, group_id, w_cards, b_cards):
@@ -10,14 +10,18 @@ class Game:
         self.group_id = group_id
         self.users = {}
         self.started = False
+        self.round = 0
     
     def new_round(self):
+        if self.round == rounds:
+            return False
+        self.round += 1
         self.black_card = self.b_cards.pop()
         self.picked_cards = []
         self.voting = False
         for u in self.users.values():
             u['voted'] = False
-        return self.black_card
+        return True
 
     def get_users_list(self):
         return self.users.keys()

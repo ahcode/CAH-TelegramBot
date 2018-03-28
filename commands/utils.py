@@ -4,14 +4,39 @@ from telebot import types
 from config import self_voting
 
 def new_round(game):
-    game.new_round()
-    bot.send_message(game.group_id, "La frase para esta ronda es:\n\n{}".format(b_cards[game.black_card].format('_____')))
-    users_cards = game.get_cards()
-    for uid, cards in users_cards.iteritems():
-        keyboard = types.InlineKeyboardMarkup()
-        for c in cards:
-            keyboard.add(types.InlineKeyboardButton(w_cards[c], callback_data=str(c)))
-        bot.send_message(uid, "La frase es:\n\n{}.\nElige una carta graciosa!".format(b_cards[game.black_card].format('_____')), reply_markup=keyboard)
+    if game.new_round():
+        bot.send_message(game.group_id, "La frase para esta ronda es:\n\n{}".format(b_cards[game.black_card].format('_____')))
+        users_cards = game.get_cards()
+        for uid, cards in users_cards.iteritems():
+            keyboard = types.InlineKeyboardMarkup()
+            for c in cards:
+                keyboard.add(types.InlineKeyboardButton(w_cards[c], callback_data=str(c)))
+            bot.send_message(uid, "La frase es:\n\n{}.\n\nElige una carta graciosa!".format(b_cards[game.black_card].format('_____')), reply_markup=keyboard)
+    else:
+        end_game(game)
+
+def end_game(game):
+    winners = game.users.values()
+    winners.sort(key=lambda x: x['points'], reverse = True)
+    max_points = winners[0]['points']
+    for i in range(1, len(winners)):
+        if winners[i]['points'] != max_points:
+            winners = winners[:i]
+    if len(winners) == 1:
+        msgtext = "¡FIN DEL JUEGO!\n\nY el ganador de la partida es... {}!!\n\nQue bien! Ya tienes algo que poner el el curriculum!".format(winners[0]['name'].upper())
+    else:
+        msgtext = "¡FIN DEL JUEGO!\n\nPuff, ha habido un empate. Los gandores son... "
+        for i in range(0, len(winners)):
+            if i == len(winners) - 1: msgtext += " y "
+            elif i != 0: msgtext += ", "
+            msgtext += winners[i]['name'].upper()
+        msgtext += "!!\n\nEnhorabuena! Ahora a daros de ostias sin camiseta para decidir el ganador."
+    bot.send_message(game.group_id, msgtext)
+
+    for uid in game.get_users_list():
+        user = users.get_user(uid)
+        user.groupid = None
+    games.del_game(game.group_id)
 
 def start_game(game):
     if game.start():
